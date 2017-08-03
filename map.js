@@ -191,7 +191,7 @@ function getDistrictInfo(){
   //TODO - call openStates
   //TODO - set cookies or local storage
 
-  var testLower = JSON.parse('/data/sldl17.json');
+ // var testLower = JSON.parse('/data/sldl17.json');
 
   //TODO update mailchimp hidden fields
 
