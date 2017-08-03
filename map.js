@@ -1,6 +1,6 @@
 var map, marker, sldlOverlay, slduOverlay;
 var caCenter, defaultZoom, defaultBounds;
-var autocomplete, districtUpper, districtLower, zip; //todo what about other states
+var autocomplete, districtUpper, districtLower, zip, state; //todo what about other states
 var curOverlay = 'sldl';
 
 //TODO add which state to parameters
@@ -10,8 +10,6 @@ var sldlPath = "./data/ca-sldl.json";
 var layerID = 'my-custom-layer';
 var TILE_URL = 'https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqMnczY2xqYjAwZW8zM255MGlwc2g1NWYifQ.dKJgOK8K1MywiRftFeeomA';
 
-
-
 //Mapbox + district layers
 //'https://api.mapbox.com/styles/v1/wolfgang-mpz/cj5iov8505bld2rpesj4igei5/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqMnczY2xqYjAwZW8zM255MGlwc2g1NWYifQ.dKJgOK8K1MywiRftFeeomA';
 
@@ -20,12 +18,9 @@ var TILE_URL = 'https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{
 //'https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqMnczY2xqYjAwZW8zM255MGlwc2g1NWYifQ.dKJgOK8K1MywiRftFeeomA';
 
 
-
-
 function init() {
 	initMap();
 	initAutocomplete();
-  console.log('hello world');
 }
 
 function initMap() {
@@ -78,9 +73,6 @@ function addGeoJsonLayers(map){
 
   sldlOverlay.setMap(map);
   slduOverlay.setMap(map);
-
-
-
 	
 }
 
@@ -175,11 +167,17 @@ function getLatLong() {
 	var lat = place.geometry.location.lat();
   var lng = place.geometry.location.lng();
 
+  //getstate
+
 	console.log(lat);
 	console.log(lng);
 	
 	for (var i = 0; i < place.address_components.length; i++) {
       for (var j = 0; j < place.address_components[i].types.length; j++) {
+        if (place.address_components[i].types[j] == "administrative_area_level_1") {
+            state = place.address_components[i].short_name;
+            console.log(state)
+        }
         if (place.address_components[i].types[j] == "postal_code") {
           	zip = place.address_components[i].long_name;
 		 	      console.log(zip)
