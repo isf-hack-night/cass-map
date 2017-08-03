@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="map.css" rel="stylesheet">
+  <script type="text/javascript" src="http://livejs.com/live.js"></script>
+</head>
+<body>
+
+	<div id="locationField">
+		<input id="autocomplete" placeholder="Enter your address"
+	     	onFocus="geolocate()" type="text"></input>
+	</div>
+
+	<div id="map"></div>
+
+	Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.
+
+
+    <script src="map.js"></script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAqqqBz8JvGAwKw8rY3jPY9WDGtQuUQCM8&libraries=places&callback=init" async defer></script>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+#map {
+  width: 600px;
+  height: 700px;
+}
+
+#locationField, #controls {
+  position: relative;
+  width: 560px;
+}
+
+#autocomplete {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 99%;
+}
+
+
+#locationField {
+  height: 20px;
+  margin-bottom: 2px;
+}
