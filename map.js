@@ -1,22 +1,21 @@
 var map, marker, sldlOverlay, slduOverlay;
 var caCenter, defaultZoom, defaultBounds;
-var autocomplete, districtUpper, districtLower, zip, state; //todo what about other states
+var autocomplete, districtUpper, districtLower, zip; 
+var state = 'CA';     //TODO get latlong map zoom defaults
 var curOverlay = 'sldl';
 
-//TODO add which state to parameters
 var slduPath = "./data/ca-sldu.json";
 var sldlPath = "./data/ca-sldl.json";
+//TODO - do we still want these initially
 
-var layerID = 'my-custom-layer';
+var layerID = 'mapbox-light-layer';
 var TILE_URL = 'https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqMnczY2xqYjAwZW8zM255MGlwc2g1NWYifQ.dKJgOK8K1MywiRftFeeomA';
 
-//Mapbox + district layers
-//'https://api.mapbox.com/styles/v1/wolfgang-mpz/cj5iov8505bld2rpesj4igei5/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqMnczY2xqYjAwZW8zM255MGlwc2g1NWYifQ.dKJgOK8K1MywiRftFeeomA';
+//var layerID = 'mapbox-custom-layer';
+//var TILE_URL = 'https://api.mapbox.com/styles/v1/wolfgang-mpz/cj5iov8505bld2rpesj4igei5/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqMnczY2xqYjAwZW8zM255MGlwc2g1NWYifQ.dKJgOK8K1MywiRftFeeomA';
 
 
-//Mapbox light
-//'https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqMnczY2xqYjAwZW8zM255MGlwc2g1NWYifQ.dKJgOK8K1MywiRftFeeomA';
-
+//TOOD map inset? use low poly? - create low poly mapbox layer? - need geojson 
 
 function init() {
 	initMap();
@@ -24,14 +23,11 @@ function init() {
 }
 
 function initMap() {
-	
 	defaultZoom = 6;
 	caCenter = new google.maps.LatLng(37.2719, -119.2702);
 	defaultBounds = new google.maps.LatLngBounds(
   		new google.maps.LatLng(32.5343, -124.4096),
   		new google.maps.LatLng(42.0095, -114.1308));
-	
-
 	
 	// Create a map object and specify the DOM element for display.
 		map = new google.maps.Map(document.getElementById('map'), {
@@ -44,7 +40,6 @@ function initMap() {
                 zoomControl: true,
 
 		});
-	
 	
 		addCustomTiles(map);
 		addGeoJsonLayers(map);
@@ -59,10 +54,10 @@ function addGeoJsonLayers(map){
   sldlOverlay.loadGeoJson(sldlPath);
   slduOverlay.loadGeoJson(slduPath);
 
-  //temp styles
+  //TODO style initial map layers
   sldlOverlay.setStyle({
     strokeColor: 'red',
-    strokeWeight: 5
+    strokeWeight: 2
    });
 
   slduOverlay.setStyle({
@@ -108,6 +103,7 @@ function addCustomControls(map){
 	var resetControl = new ResetControl(controlDivReset, map);
 	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDivReset);
 	
+  //TODO create toggle upper vs lower house map layer
 	/*
 	var controlDivOverlay = document.createElement('div');
 	var overlayControl = new ResetControl(controlDivOverlay, map);
@@ -116,13 +112,24 @@ function addCustomControls(map){
 }
 
 function resetMap(){
+  console.log( 'reset map');
 
   if (marker) { marker.setMap(null) }
   map.setCenter(caCenter);
   map.setZoom(defaultZoom);
   document.getElementById('autocomplete').value = '';
+
+}
+
+function resetDistrictInfo(){
+  //TODO 
+
+  //temp
   districtUpper, districtLower, zip = '';
-  //todo clear mailchimp section
+
+
+  //TODO clear mailchimp section
+
 }
 
 function ResetControl(controlDiv, map) {
@@ -155,22 +162,19 @@ function initAutocomplete() {
             /** @type {!HTMLInputElement} */(document.getElementById('autocomplete')),
             {types: ['geocode']});
 
-        // When the user selects an address from the dropdown, populate the address
-        // fields in the form.
-        autocomplete.addListener('place_changed', getLatLong);
+        autocomplete.addListener('place_changed', getDistrictInfo);
       }
 
-function getLatLong() {
+function getDistrictInfo(){
+
         // Get the place details from the autocomplete object.
 	var place = autocomplete.getPlace();
 
 	var lat = place.geometry.location.lat();
   var lng = place.geometry.location.lng();
 
-  //getstate
-
-	console.log(lat);
-	console.log(lng);
+  console.log(lat);
+  console.log(lng);
 	
 	for (var i = 0; i < place.address_components.length; i++) {
       for (var j = 0; j < place.address_components[i].types.length; j++) {
@@ -185,10 +189,15 @@ function getLatLong() {
       }
     }
 		
-	//TODO map latlng to Districts
-	//TODO autopopulate cookie and mailchimp signup fields
-	console.log('TODO - GET DISTRICTS')	
-	zoomDistrict(place);
+	  console.log('TODO - GET DISTRICTS') 
+  //TODO - call openStates
+  //TODO - set cookies or local storage
+
+
+  //TODO update mailchimp hidden fields
+
+  //TODO update to use bounding box for district
+  zoomDistrict(place);
 	
  }
 
