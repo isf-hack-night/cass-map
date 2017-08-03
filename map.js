@@ -9,10 +9,8 @@ var sldlPath = "./data/ca-sldl.json";
 //TODO - do we still want these initially
 
 var layerID = 'mapbox-light-layer';
-var TILE_URL = 'https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqMnczY2xqYjAwZW8zM255MGlwc2g1NWYifQ.dKJgOK8K1MywiRftFeeomA';
-
+var TILE_URL = 'https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqNXcxYXA1djA4NzIyd29ncmFzbmowZjUifQ.d_D9DGVm9sfiEJilUmR0dw';
 //var layerID = 'mapbox-custom-layer';
-//var TILE_URL = 'https://api.mapbox.com/styles/v1/wolfgang-mpz/cj5iov8505bld2rpesj4igei5/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqMnczY2xqYjAwZW8zM255MGlwc2g1NWYifQ.dKJgOK8K1MywiRftFeeomA';
 
 
 //TOOD map inset? use low poly? - create low poly mapbox layer? - need geojson 
@@ -193,6 +191,7 @@ function getDistrictInfo(){
   //TODO - call openStates
   //TODO - set cookies or local storage
 
+  var testLower = JSON.parse('/data/sldl17.json');
 
   //TODO update mailchimp hidden fields
 
