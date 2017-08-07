@@ -1,8 +1,13 @@
 var map, marker, sldlOverlay, slduOverlay;
 var caCenter, defaultZoom, defaultBounds;
 var autocomplete, districtUpper, districtLower, zip; 
+var openStates;
+var stateDistricts;
 var state = 'CA';     //TODO get latlong map zoom defaults
 var curOverlay = 'sldl';
+var openStatesApiKey = 'INSERT API KEY HERE';
+var currentChamber = 'lower';
+var currentDistrict;
 
 var slduPath = "./data/ca-sldu.json";
 var sldlPath = "./data/ca-sldl.json";
@@ -15,9 +20,45 @@ var TILE_URL = 'https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{
 
 //TOOD map inset? use low poly? - create low poly mapbox layer? - need geojson 
 
+// Copied from https://www.html5rocks.com/en/tutorials/cors/
+function createCORSRequest(method, url) {
+  var xhr = new XMLHttpRequest();
+  if ("withCredentials" in xhr) {
+
+    // Check if the XMLHttpRequest object has a "withCredentials" property.
+    // "withCredentials" only exists on XMLHTTPRequest2 objects.
+    xhr.open(method, url, true);
+
+  } else if (typeof XDomainRequest != "undefined") {
+
+    // Otherwise, check if XDomainRequest.
+    // XDomainRequest only exists in IE, and is IE's way of making CORS requests.
+    xhr = new XDomainRequest();
+    xhr.open(method, url);
+
+  } else {
+
+    // Otherwise, CORS is not supported by the browser.
+    xhr = null;
+
+  }
+  return xhr;
+}
+
+
 function init() {
 	initMap();
 	initAutocomplete();
+	// initOpenStates(); Add back once we get openestates working.
+}
+
+function initOpenStates() {
+	openStates = new OpenStates(openStatesApiKey);
+	console.log(openStates.api_key);
+	var state_lower = state.toLowerCase();
+	stateDistricts = new DistrictList(openStates.getDistricts(state_lower), state_lower);
+	// Preload all district info. Takes about 15 seconds for CA.
+	stateDistricts.preloadDistricts();
 }
 
 function initMap() {
@@ -38,7 +79,6 @@ function initMap() {
                 zoomControl: true,
 
 		});
-	
 		addCustomTiles(map);
 		addGeoJsonLayers(map);
 		addCustomControls(map);
@@ -69,8 +109,6 @@ function addGeoJsonLayers(map){
 	
 }
 
-
-
 function addCustomTiles(map){
 	   // Create a tile layer, configured to fetch tiles from TILE_URL.
       layer = new google.maps.ImageMapType({
@@ -92,8 +130,6 @@ function addCustomTiles(map){
       map.setMapTypeId(layerID);
 	
 }
-
-
 
 function addCustomControls(map){
 	
@@ -163,6 +199,137 @@ function initAutocomplete() {
         autocomplete.addListener('place_changed', getDistrictInfo);
       }
 
+function OpenStates(api_key) {
+	this.openStatesURL = 'https://openstates.org/api/v1';
+	this.api_key = '' + api_key;
+}
+
+
+function District(json) {
+	this.abbr = json.abbr;
+	this.boundary_id = json.boundary_id;
+	this.chamber = json.chamber;
+	this.id = json.id;
+	this.legislators = json.legislators;
+	this.num_seats = json.num_seats;
+	this.boundary = null;
+}
+
+District.prototype.getBoundary = function() {
+	if (!this.boundary) {
+		var json = openStates.getDistrictBoundary(this.boundary_id);
+		if (json) {
+			this.boundary = this;
+			this.bbox = json.bbox;
+			this.region = json.region;
+			this.shape = json.shape;
+		}
+	}
+	return this.boundary;
+}
+
+function DistrictList(json, state) {
+	var district;
+	this.upper_districts = [];
+	this.lower_districts = [];
+	this.state = state;
+	this.num_districts = json.length;
+	this.num_districts = 4;
+	this.districts = {};
+	this.district_ids = [];
+	for (var i in json) {
+		district = new District(json[i]);
+		this.districts[district.id] = district;
+		this.district_ids.push[district_id];
+		if (district.chamber == 'upper') {
+			this.upper_districts[parseInt(district.name)] = district;
+		} else if (district.chamber == 'lower') {
+			this.lower_districts[parseInt(district.name)] = district;
+		}
+	}
+	this.populated = false;
+	this.populator = new DistrictPopulator(this);
+}
+
+function DistrictPopulator (districtList) {
+	this.districtList = districtList;
+	this.currentDistrict = 0;
+}
+
+DistrictPopulator.prototype.populate = function() {
+	if (this.currentDistrict < this.districtList.num_districts) {
+		var district_id = this.districtList.district_ids[this.currentDistrict];
+		this.districtList.districts[district_id].getBoundary();
+		console.log('Populating ' + district_id);
+		this.currentDistrict++;
+		setTimeout(this.populate, 100);
+	}
+}
+
+DistrictList.prototype.findNearbyDistricts = function () {
+	var nearby = [];
+	nearby.push(this.lower_districts[0]);
+	nearby.push(this.upper_districts[0]);
+	return nearby;
+}
+
+DistrictList.prototype.preloadDistricts = function () {
+	if (!this.populated) {
+		this.populated = true;
+		this.populator.populate();
+	}
+}
+
+DistrictList.prototype.createDistrictId = function (state, chamber, number) {
+	return state + '-' + chamber + '-' + number;
+}
+
+DistrictList.prototype.getDistrict = function (chamber, number) {
+	return this.districts[this.createDistrictId(this.state, this.chamber, this.number)];
+}
+
+OpenStates.prototype.makeUrl = function(method) {
+	return this.openStatesURL + '/' + method + '/' + "?apikey=" + this.api_key;
+}
+
+OpenStates.prototype.callApi = function (url) {
+	var xhr = new XMLHttpRequest;
+	xhr.open('GET', url, false);
+	xhr.setRequestHeader('X-API-KEY', this.api_key);
+	xhr.send();
+	return JSON.parse(xhr.responseText);
+}
+
+OpenStates.prototype.getDistricts = function (state, chamber) {
+	var method = 'districts/' + state;
+	if (chamber) {
+		method += '/' + chamber;
+	}
+	return this.callApi(this.makeUrl(method));
+}
+
+OpenStates.prototype.getDistrictBoundary = function (boundary_id) {
+	var method = 'districts/boundary/' + boundary_id;
+	return this.callApi(this.makeUrl(method));
+}
+
+function updateUpperLower(possibleDistricts) {
+	var district;
+	for (var d in possibleDistricts) {
+		district = possibleDistricts[d];
+		if (district.chamber == 'lower') {
+			districtLower = district;
+		} else if (district.chamber == 'upper') {
+			districtUpper = district;
+		}
+	}
+	if (currentChamber == 'upper') {
+		currentDistrict = districtUpper;
+	} else {
+		currentDistrict = districtLower;
+	}
+}
+
 function getDistrictInfo(){
 
         // Get the place details from the autocomplete object.
@@ -187,7 +354,19 @@ function getDistrictInfo(){
       }
     }
 		
-	  console.log('TODO - GET DISTRICTS') 
+	console.log('TODO - GET DISTRICTS') 
+	//  possibleDistricts = stateDistricts.findNearbyDistricts(lat, lng);
+	//  console.log('Possible Districts');
+	//  console.log(possibleDistricts);
+	//  // TODO - actually find correct district instead of just picking
+	//  // closest center within bounding box.
+	//  updateUpperLower(possibleDistricts);
+	//  console.log('Lower district:' + districtLower.id);
+	//  console.log(districtLower);
+	//  console.log('Upper district:' + districtUpper.id);
+	//  console.log(districtUpper);
+	//  console.log('current district:' + districtUpper.id);
+	//  zoomDistrict(place, currentDistrict);
   //TODO - call openStates
   //TODO - set cookies or local storage
 
@@ -200,6 +379,8 @@ function getDistrictInfo(){
 	
  }
 
+// Add back once openstates works.
+// function zoomDistrict(place, district){
 function zoomDistrict(place){
 	
 	//TODO zoom to district bounding box
