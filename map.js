@@ -1,4 +1,5 @@
-var map, marker, sldlOverlay, slduOverlay;
+var map, marker;
+var sldlOverlay, slduOverlay;
 var caCenter, defaultZoom, defaultBounds;
 var autocomplete, districtUpper, districtLower, zip; 
 var openStates;
@@ -171,6 +172,7 @@ function addCustomControls(map){
 
 function resetMapboxMap(){
   console.log( 'reset map');
+  if (marker) { map.removeLayer(marker) }
   map.setView([37.2719, -119.2702], 6);
   document.getElementById('autocomplete').value = '';
 
@@ -411,10 +413,11 @@ function getDistrictInfo(){
 	zoomMapBoxDistrict(lat, lng, boundary);
  }
 
- function zoomMapboxDistrict(place,boundary){
+ function zoomMapboxDistrict(lat,lng,boundary){
+  marker = L.marker([lat,lng],{ draggable: true }).addTo(map);
 
   //fitBounds(<LatLngBounds> bounds, <fitBounds options> options?)
-
+  map.setView([lat, lng], 9);  //temp
  }
 
 // Add back once openstates works.
