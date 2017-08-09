@@ -64,11 +64,13 @@ function initOpenStates() {
 
 function initMapboxMap(){
   L.mapbox.accessToken = 'pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqNXcxYXA1djA4NzIyd29ncmFzbmowZjUifQ.d_D9DGVm9sfiEJilUmR0dw';
-  var map = L.mapbox.map('map', 'mapbox.light')
-    .setView([37.2719, -119.2702], 6);
+  map = L.mapbox.map('map', 'mapbox.light');
+  resetMapboxMap();
+    
 
 
     //todo needs ca outline
+    //todo add custom layers
 
 
     //TODO needs reset map
@@ -167,7 +169,14 @@ function addCustomControls(map){
  */
 }
 
-function resetMap(){
+function resetMapboxMap(){
+  console.log( 'reset map');
+  map.setView([37.2719, -119.2702], 6);
+  document.getElementById('autocomplete').value = '';
+
+}
+
+function resetGoogleMap(){
   console.log( 'reset map');
 
   if (marker) { marker.setMap(null) }
@@ -208,7 +217,7 @@ function ResetControl(controlDiv, map) {
   controlText.innerHTML = 'Reset Map';
   controlUI.appendChild(controlText);
 
-  controlUI.addEventListener('click', resetMap());
+  controlUI.addEventListener('click', resetGoogleMap());
 }
 
 function initAutocomplete() {
@@ -399,7 +408,7 @@ function getDistrictInfo(){
 
   //TODO update to use bounding box for district
   //zoomGoogleDistrict(place);
-	zoomMapBoxDistrict(place, boundary);
+	zoomMapBoxDistrict(lat, lng, boundary);
  }
 
  function zoomMapboxDistrict(place,boundary){
