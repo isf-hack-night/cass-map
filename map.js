@@ -259,7 +259,6 @@ function getAutocompletePlace(){
 }
 
 function getDistrictInfo(lat, lng){
-
         // Get the place details from the autocomplete object.
 
 		
@@ -283,7 +282,9 @@ function getDistrictInfo(lat, lng){
 
   var shape = [];
   var bbox = [];
+
 	zoomDistrict(lat, lng, shape, bbox);
+
  }
 
 //TODO deal with upper and lower 
@@ -293,15 +294,24 @@ function getDistrictInfo(lat, lng){
   } else {
     map.setView([lat,lng], defaultZoom + 3 );
   }
-  marker = L.marker([lat,lng],{ draggable: true });
-  markers.addLayer(marker);
+
+  var drawNewDistrict = true;
+  //TODO detect if change
+  map.on('zoomend', function() {
+    if( drawNewDistrict ){
+      marker = L.marker([lat,lng],{ draggable: true });
+      markers.addLayer(marker);
 
   //todo add spiderweb of surrounding districts?
-  var boundaryLower = shape[0][0].slice(1).map(function(x) { return [x[1],x[0]]; });
+      var boundaryLower = shape[0][0].slice(1).map(function(x) { return [x[1],x[0]]; });
 
   //TODO random color
-  var polygonLower = L.polygon(boundaryLower, {color: 'red'});
-  myDistricts.addLayer( polygonLower );
+      var polygonLower = L.polygon(boundaryLower, {color: 'red'});
+      myDistricts.addLayer( polygonLower );
+      drawNewDistrict = false;
+    }
+  });
+
 
 
   //TODO display both districts
