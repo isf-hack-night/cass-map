@@ -11,12 +11,13 @@ var currentDistrict;
 
 var slduPath = "./data/ca-sldu.json";
 var sldlPath = "./data/ca-sldl.json";
-//TODO - do we still want these initially
+var clipPath = "./data/ca-clip.json";
+//TODO - do we st"./data/ca-sldl.json";ill want these initially
 
 var layerID = 'mapbox-light-layer';
 var TILE_URL = 'https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqNXcxYXA1djA4NzIyd29ncmFzbmowZjUifQ.d_D9DGVm9sfiEJilUmR0dw';
 //var layerID = 'mapbox-custom-layer';
-
+//var TILE_URL = 'https://api.mapbox.com/styles/v1/wolfgang-mpz/cj5w0hqb270ej2rlds4ij4mtp/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqMnczY2xqYjAwZW8zM255MGlwc2g1NWYifQ.dKJgOK8K1MywiRftFeeomA';
 
 //TOOD map inset? use low poly? - create low poly mapbox layer? - need geojson 
 
@@ -86,11 +87,13 @@ function initMap() {
 
 function addGeoJsonLayers(map){
 	
+  clipOverlay = new google.maps.Data();
 	sldlOverlay = new google.maps.Data();
 	slduOverlay = new google.maps.Data();
 
   sldlOverlay.loadGeoJson(sldlPath);
   slduOverlay.loadGeoJson(slduPath);
+  clipOverlay.loadGeoJson(clipPath);
 
   //TODO style initial map layers
   sldlOverlay.setStyle({
@@ -102,10 +105,15 @@ function addGeoJsonLayers(map){
     strokeColor: 'black',
     strokeWeight: 1
   });
+
+  clipOverlay.setStyle({
+    fillColor: 'black',
+  });
 	
 
   sldlOverlay.setMap(map);
   slduOverlay.setMap(map);
+  clipOverlay.setMap(map);
 	
 }
 
