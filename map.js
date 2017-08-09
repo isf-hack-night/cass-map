@@ -49,16 +49,19 @@ function createCORSRequest(method, url) {
 function init() {
 	initMap();
 	initAutocomplete();
-	// initOpenStates(); Add back once we get openestates working.
+	initOpenStates();
 }
 
 function initOpenStates() {
-	openStates = new OpenStates(openStatesApiKey);
-	console.log(openStates.api_key);
+	// openStates = new OpenStates(openStatesApiKey)
+	openStates = new LocalOpenStates();
 	var state_lower = state.toLowerCase();
-	stateDistricts = new DistrictList(openStates.getDistricts(state_lower), state_lower);
-	// Preload all district info. Takes about 15 seconds for CA.
-	stateDistricts.preloadDistricts();
+	// calls are currently syncronous. Avoid synchronous call by launching a new thread.
+	setTimeout(function () {
+		stateDistricts = new DistrictList(openStates.getDistricts(state_lower), state_lower);
+		stateDistricts.preloadDistricts();
+	}, 10);
+	
 }
 
 function initMap() {
@@ -199,11 +202,38 @@ function initAutocomplete() {
         autocomplete.addListener('place_changed', getDistrictInfo);
       }
 
+function LocalOpenStates() {
+	this.openStatesURL = "data";
+	this.api_key = 'local';
+	this.is_local = true;
+}
+
+LocalOpenStates.prototype.makeUrl = function(method) {
+	return this.openStatesURL + '/' + method + '.json';
+}
+
+LocalOpenStates.prototype.callApi = function (url) {
+	var xhr = new XMLHttpRequest;
+	xhr.open('GET', url, false);
+	xhr.send();
+	return JSON.parse(xhr.responseText);
+}
+
+LocalOpenStates.prototype.getDistricts = function (state, chamber) {
+	var method = 'all_districts';
+	return this.callApi(this.makeUrl(method));
+}
+
+LocalOpenStates.prototype.getDistrictBoundary = function (boundary_id) {
+	var method = boundary_id;
+	return this.callApi(this.makeUrl(method));
+}
+
 function OpenStates(api_key) {
 	this.openStatesURL = 'https://openstates.org/api/v1';
 	this.api_key = '' + api_key;
+	this.is_local = false;
 }
-
 
 function District(json) {
 	this.abbr = json.abbr;
@@ -213,11 +243,17 @@ function District(json) {
 	this.legislators = json.legislators;
 	this.num_seats = json.num_seats;
 	this.boundary = null;
+	this.name = json.name;
 }
 
 District.prototype.getBoundary = function() {
 	if (!this.boundary) {
-		var json = openStates.getDistrictBoundary(this.boundary_id);
+		var json = null;
+		if (!openStates.is_local) {
+			json = openStates.getDistrictBoundary(this.boundary_id);
+		} else {
+			json = openStates.getDistrictBoundary(this.id);
+		}
 		if (json) {
 			this.boundary = this;
 			this.bbox = json.bbox;
@@ -234,17 +270,17 @@ function DistrictList(json, state) {
 	this.lower_districts = [];
 	this.state = state;
 	this.num_districts = json.length;
-	this.num_districts = 4;
 	this.districts = {};
 	this.district_ids = [];
 	for (var i in json) {
 		district = new District(json[i]);
 		this.districts[district.id] = district;
-		this.district_ids.push[district_id];
+		this.district_ids.push(district.id);
+		var district_num = parseInt(district.name);
 		if (district.chamber == 'upper') {
-			this.upper_districts[parseInt(district.name)] = district;
+			this.upper_districts[district_num - 1] = district;
 		} else if (district.chamber == 'lower') {
-			this.lower_districts[parseInt(district.name)] = district;
+			this.lower_districts[district_num - 1] = district;
 		}
 	}
 	this.populated = false;
@@ -260,10 +296,19 @@ DistrictPopulator.prototype.populate = function() {
 	if (this.currentDistrict < this.districtList.num_districts) {
 		var district_id = this.districtList.district_ids[this.currentDistrict];
 		this.districtList.districts[district_id].getBoundary();
-		console.log('Populating ' + district_id);
 		this.currentDistrict++;
-		setTimeout(this.populate, 100);
+		var that = this;
+		var call = function() { that.populate(); };
+		setTimeout(call, 10);
 	}
+}
+
+DistrictList.prototype.getLowerDistrict = function (i) {
+	return this.lower_districts[i - 1];
+}
+
+DistrictList.prototype.getUpperDistrict = function (i) {
+	return this.upper_districts[i - 1];
 }
 
 DistrictList.prototype.findNearbyDistricts = function () {
@@ -355,18 +400,18 @@ function getDistrictInfo(){
     }
 		
 	console.log('TODO - GET DISTRICTS') 
-	//  possibleDistricts = stateDistricts.findNearbyDistricts(lat, lng);
-	//  console.log('Possible Districts');
-	//  console.log(possibleDistricts);
-	//  // TODO - actually find correct district instead of just picking
-	//  // closest center within bounding box.
-	//  updateUpperLower(possibleDistricts);
-	//  console.log('Lower district:' + districtLower.id);
-	//  console.log(districtLower);
-	//  console.log('Upper district:' + districtUpper.id);
-	//  console.log(districtUpper);
-	//  console.log('current district:' + districtUpper.id);
-	//  zoomDistrict(place, currentDistrict);
+	possibleDistricts = stateDistricts.findNearbyDistricts(lat, lng);
+	console.log('Possible Districts');
+	console.log(possibleDistricts);
+	// TODO - actually find correct district instead of just picking
+	// closest center within bounding box.
+	updateUpperLower(possibleDistricts);
+	console.log('Lower district:' + districtLower.id);
+	console.log(districtLower);
+	console.log('Upper district:' + districtUpper.id);
+	console.log(districtUpper);
+	console.log('current district:' + districtUpper.id);
+	zoomDistrict(place, currentDistrict);
   //TODO - call openStates
   //TODO - set cookies or local storage
 
@@ -375,13 +420,12 @@ function getDistrictInfo(){
   //TODO update mailchimp hidden fields
 
   //TODO update to use bounding box for district
-  zoomDistrict(place);
+  //zoomDistrict(place);
 	
  }
 
 // Add back once openstates works.
-// function zoomDistrict(place, district){
-function zoomDistrict(place){
+function zoomDistrict(place, district){
 	
 	//TODO zoom to district bounding box
   var tmpZoom = 8;
