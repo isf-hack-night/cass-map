@@ -1,5 +1,4 @@
 var map, marker, markers, districts;
-var sldlOverlay, slduOverlay;
 var caCenter = [37.2719, -119.2702];
 var defaultZoom = 6;
 var caBounds = [ [32.5343, -124.4096], [42.0095, -114.1308]];
@@ -11,18 +10,6 @@ var curOverlay = 'sldl';
 var openStatesApiKey = 'INSERT API KEY HERE';
 var currentChamber = 'lower';
 var currentDistrict;
-
-var slduPath = "./data/ca-sldu.json";
-var sldlPath = "./data/ca-sldl.json";
-var clipPath = "./data/ca-clip.json";
-//TODO - do we st"./data/ca-sldl.json";ill want these initially
-
-var layerID = 'mapbox-light-layer';
-var TILE_URL = 'https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqNXcxYXA1djA4NzIyd29ncmFzbmowZjUifQ.d_D9DGVm9sfiEJilUmR0dw';
-//var layerID = 'mapbox-custom-layer';
-//var TILE_URL = 'https://api.mapbox.com/styles/v1/wolfgang-mpz/cj5w0hqb270ej2rlds4ij4mtp/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqMnczY2xqYjAwZW8zM255MGlwc2g1NWYifQ.dKJgOK8K1MywiRftFeeomA';
-
-//TOOD map inset? use low poly? - create low poly mapbox layer? - need geojson 
 
 var testlat = 37.819027000000006;
 var testlng = -122.372781;
@@ -56,7 +43,7 @@ function createCORSRequest(method, url) {
 
 
 function init() {
-	initMapboxMap();
+	initMap();
 	initAutocomplete();
 	// initOpenStates(); Add back once we get openestates working.
 }
@@ -70,7 +57,7 @@ function initOpenStates() {
 	stateDistricts.preloadDistricts();
 }
 
-function initMapboxMap(){
+function initMap(){
   L.mapbox.accessToken = 'pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqNXcxYXA1djA4NzIyd29ncmFzbmowZjUifQ.d_D9DGVm9sfiEJilUmR0dw';
   map = L.mapbox.map('map', 'mapbox.light');
   map.fitBounds(caBounds);
@@ -79,115 +66,16 @@ function initMapboxMap(){
   map.addLayer(myDistricts);
   markers = L.featureGroup();
   map.addLayer(markers);
-  resetMapboxMap();
+  resetMap();
 
-    //todo needs ca outline
+    //TODO needs ca outline
 }
 
-function initGoogleMap() {
-	caCenter = new google.maps.LatLng(37.2719, -119.2702);
-	defaultBounds = new google.maps.LatLngBounds(
-  		new google.maps.LatLng(32.5343, -124.4096),
-  		new google.maps.LatLng(42.0095, -114.1308));
-	
-	// Create a map object and specify the DOM element for display.
-		map = new google.maps.Map(document.getElementById('map'), {
-                center: caCenter,
-                scrollwheel: true,
-                zoom: defaultZoom,
-                disableDefaultUI: true,
-                mapTypeControl: false,
-                scaleControl: true,
-                zoomControl: true,
 
-		});
-		addCustomTiles(map);
-		addGeoJsonLayers(map);
-		addCustomControls(map);
-}
-
-function addGeoJsonLayers(map){
-	
-  clipOverlay = new google.maps.Data();
-	sldlOverlay = new google.maps.Data();
-	slduOverlay = new google.maps.Data();
-
-  sldlOverlay.loadGeoJson(sldlPath);
-  slduOverlay.loadGeoJson(slduPath);
-  clipOverlay.loadGeoJson(clipPath);
-
-  //TODO style initial map layers
-  sldlOverlay.setStyle({
-    strokeColor: 'red',
-    strokeWeight: 2
-   });
-
-  slduOverlay.setStyle({
-    strokeColor: 'black',
-    strokeWeight: 1
-  });
-
-  clipOverlay.setStyle({
-    fillColor: 'black',
-  });
-	
-
-  sldlOverlay.setMap(map);
-  slduOverlay.setMap(map);
-  clipOverlay.setMap(map);
-	
-}
-
-function addCustomTiles(map){
-	   // Create a tile layer, configured to fetch tiles from TILE_URL.
-      layer = new google.maps.ImageMapType({
-        name: layerID,
-        getTileUrl: function(coord, zoom) {
-          var url = TILE_URL
-            .replace('{x}', coord.x)
-            .replace('{y}', coord.y)
-            .replace('{z}', zoom);
-          return url;
-        },
-        tileSize: new google.maps.Size(256, 256),
-        minZoom: 1,
-        maxZoom: 20
-      });
-      
-      // Apply the new tile layer to the map.
-      map.mapTypes.set(layerID, layer);
-      map.setMapTypeId(layerID);
-	
-}
-
-function addCustomControls(map){
-	
-	var controlDivReset = document.createElement('div');
-	var resetControl = new ResetControl(controlDivReset, map);
-	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDivReset);
-	
-  //TODO create toggle upper vs lower house map layer
-	/*
-	var controlDivOverlay = document.createElement('div');
-	var overlayControl = new ResetControl(controlDivOverlay, map);
-	map.controls[google.maps.ControlPosition.TOP_LEFT].push(controlDivOverlay);
- */
-}
-
-function resetMapboxMap(){
+function resetMap(){
   markers.clearLayers();
   myDistricts.clearLayers();
   map.flyToBounds(caBounds);
-  document.getElementById('autocomplete').value = '';
-  resetDistrictInfo();
-}
-
-function resetGoogleMap(){
-  console.log( 'reset map');
-
-  if (marker) { marker.setMap(null) }
-  map.setCenter(caCenter);
-  map.setZoom(defaultZoom);
   document.getElementById('autocomplete').value = '';
   resetDistrictInfo();
 }
@@ -201,29 +89,6 @@ function resetDistrictInfo(){
 
   //TODO clear mailchimp section
 
-}
-
-function ResetControl(controlDiv, map) {
-
-  //todo add to css file
-  // Set CSS for the control border.
-  var controlUI = document.createElement('div');
-  controlUI.style.backgroundColor = '#fff';
-  controlUI.style.border = '2px solid #fff';
-  controlUI.style.borderRadius = '3px';
-  controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
-  controlUI.style.cursor = 'pointer';
-  controlUI.style.margin = '10px';
-  controlUI.style.textAlign = 'center';
-  controlUI.title = 'Click to reset the map';
-  controlDiv.appendChild(controlUI);
-
-  // Set CSS for the control interior.
-  var controlText = document.createElement('div');
-  controlText.innerHTML = 'Reset Map';
-  controlUI.appendChild(controlText);
-
-  controlUI.addEventListener('click', resetGoogleMap());
 }
 
 function initAutocomplete() {
@@ -411,22 +276,18 @@ function getDistrictInfo(lat, lng){
 	//  console.log(districtUpper);
 	//  console.log('current district:' + districtUpper.id);
 	//  zoomDistrict(place, currentDistrict);
+
   //TODO - call openStates
   //TODO - set cookies or local storage
-
- // var testLower = JSON.parse('/data/sldl17.json');
-
   //TODO update mailchimp hidden fields
 
-  //TODO update to use bounding box for district
-  //zoomGoogleDistrict(place);
   var shape = [];
   var bbox = [];
-	zoomMapboxDistrict(lat, lng, shape, bbox);
+	zoomDistrict(lat, lng, shape, bbox);
  }
 
 //TODO deal with upper and lower 
- function zoomMapboxDistrict(lat,lng,shape, bbox ){
+ function zoomDistrict(lat,lng,shape, bbox ){
   if(bbox.length == 2) {
     map.flyToBounds(bbox);
   } else {
@@ -443,36 +304,10 @@ function getDistrictInfo(lat, lng){
   myDistricts.addLayer( polygonLower );
 
 
-  //TODO add district toggle control
-
-  //TODO needs drag end event - rezoom map and remap district
+  //TODO display both districts
+  //TODO marker needs drag end event - remap district and rezoom
 
  }
-
-// Add back once openstates works.
-// function zoomDistrict(place, district){
-function zoomGoogleDistrict(place){
-	
-	//TODO zoom to district bounding box
-  var tmpZoom = 8;
-  marker = new google.maps.Marker({
-          map: map,
-          anchorPoint: new google.maps.Point(0, -29)
-        });
-  /*
-     if (place.geometry.viewport) {
-            map.fitBounds(place.geometry.viewport);
-     } else {
-  	 */
-    map.setCenter(place.geometry.location);
-    map.setZoom(tmpZoom);  
-      //    }
-    marker.setPosition(place.geometry.location);
-    marker.setVisible(true);
-	
-}
-
-
 
 // Bias the autocomplete object to the user's geographical location,
 // as supplied by the browser's 'navigator.geolocation' object.
