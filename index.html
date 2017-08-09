@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link href="map.css" rel="stylesheet">
-  <script type="text/javascript" src="http://livejs.com/live.js"></script>
+	<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<!-- <link href='https://api.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.css' rel='stylesheet' />-->
+	<link href='https://api.mapbox.com/mapbox.js/v3.1.1/mapbox.css' rel='stylesheet' /> 
+  	<link href="map.css" rel="stylesheet">
+  	<script type="text/javascript" src="http://livejs.com/live.js"></script>
 </head>
 <body>
 
@@ -11,22 +14,21 @@
 	     	onFocus="geolocate()" type="text"></input>
 	</div>
 
-	<div id="map">
-
-		<!-- todo bring to front -->
-  <a href="http://mapbox.com/about/maps" class='mapbox-wordmark' target="_blank">Mapbox</a>
- <div class="mapbox-attribution-container">
-   <a href="https://www.mapbox.com/about/maps/">© Mapbox | </a>
-   <a href="http://www.openstreetmap.org/copyright">© OpenStreetMap | </a>
-   <a href="https://www.mapbox.com/map-feedback/" target="_blank"><strong>Improve this map</strong></a>
- </div>
+	<div id = "map-controls">
+		<button onClick = "resetMap()"> Reset Map </button>
+		<button onClick = 'zoomDistrict(testlat, testlng, testshape, testbbox)'> Test District Zoom </button>
 
 	</div>
 
-	<!-- TODO Mapbox credit tiles -->
+	<div id="map">
 
-    <script src="map.js"></script>
+	</div>
+
+	<script src='https://api.mapbox.com/mapbox.js/v3.1.1/mapbox.js'></script>
+<!--	<script src='https://api.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.js'></script> -->
+
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAqqqBz8JvGAwKw8rY3jPY9WDGtQuUQCM8&libraries=places&callback=init" async defer></script>
+	   <script src="map.js"></script>
 
 </body>
 </html>
