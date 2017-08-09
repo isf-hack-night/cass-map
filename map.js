@@ -48,7 +48,7 @@ function createCORSRequest(method, url) {
 
 
 function init() {
-	initMap();
+	initMapboxMap();
 	initAutocomplete();
 	// initOpenStates(); Add back once we get openestates working.
 }
@@ -62,7 +62,21 @@ function initOpenStates() {
 	stateDistricts.preloadDistricts();
 }
 
-function initMap() {
+function initMapboxMap(){
+  L.mapbox.accessToken = 'pk.eyJ1Ijoid29sZmdhbmctbXB6IiwiYSI6ImNqNXcxYXA1djA4NzIyd29ncmFzbmowZjUifQ.d_D9DGVm9sfiEJilUmR0dw';
+  var map = L.mapbox.map('map', 'mapbox.light')
+    .setView([37.2719, -119.2702], 6);
+
+
+    //todo needs ca outline
+
+
+    //TODO needs reset map
+    //todo needs zoom map
+
+}
+
+function initGoogleMap() {
 	defaultZoom = 6;
 	caCenter = new google.maps.LatLng(37.2719, -119.2702);
 	defaultBounds = new google.maps.LatLngBounds(
@@ -363,6 +377,7 @@ function getDistrictInfo(){
     }
 		
 	console.log('TODO - GET DISTRICTS') 
+  var boundary = [];
 	//  possibleDistricts = stateDistricts.findNearbyDistricts(lat, lng);
 	//  console.log('Possible Districts');
 	//  console.log(possibleDistricts);
@@ -383,13 +398,19 @@ function getDistrictInfo(){
   //TODO update mailchimp hidden fields
 
   //TODO update to use bounding box for district
-  zoomDistrict(place);
-	
+  //zoomGoogleDistrict(place);
+	zoomMapBoxDistrict(place, boundary);
+ }
+
+ function zoomMapboxDistrict(place,boundary){
+
+  //fitBounds(<LatLngBounds> bounds, <fitBounds options> options?)
+
  }
 
 // Add back once openstates works.
 // function zoomDistrict(place, district){
-function zoomDistrict(place){
+function zoomGoogleDistrict(place){
 	
 	//TODO zoom to district bounding box
   var tmpZoom = 8;
