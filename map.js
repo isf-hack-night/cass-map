@@ -367,14 +367,7 @@ function getDistrictInfo(lat, lng){
   //TODO - set cookies or local storage
   //TODO update mailchimp hidden fields
 
-  var shape = currentDistrict.shape;
-  var bbox = currentDistrict.bbox ;
-
-	zoomDistrict(lat, lng, shape, bbox);
-
-  //TODO update to use bounding box for district
-
-  //todo return new district
+	zoomDistrict(lat, lng, districtUpper, districtLower);
 
   return districtUpper, districtLower;
 	
@@ -393,29 +386,35 @@ function getDistrictInfo(lat, lng){
     districtUpper = newUpper;
     districtLower = newLower;
 
-    //TODO get new shapes
-
   }
-
-  //todo get new lat long
-  //recalc district
-  //re display district -  watch our for circular zoom district - avoid resetting market
-
 
  }
 
- function drawDistricts( shape ){
-      myDistricts.clearLayers();
-      var boundaryLower = shape[0][0].slice(1).map(function(x) { return [x[1],x[0]]; });
+ function drawDistricts( upper, lower ){
 
-  //TODO random color
-  //TODO draw bow
+      var shapeUpper = upper.shape;
+      var shapeLower = lower.shape;
+
+      myDistricts.clearLayers();
+      var boundaryLower = shapeLower[0][0].slice(1).map(function(x) { return [x[1],x[0]]; });
+      var boundaryUpper = shapeUpper[0][0].slice(1).map(function(x) { return [x[1],x[0]]; });
+
+      //TODO better color
+      //todo ordering of districts, add hide/show or select
+
       var polygonLower = L.polygon(boundaryLower, {color: 'red'});
       myDistricts.addLayer( polygonLower );
+
+      var polygonUpper = L.polygon(boundaryUpper, {color: 'blue'});
+      myDistricts.addLayer( polygonUpper );
+
  }
 
 //TODO deal with upper and lower 
- function zoomDistrict(lat, lng, shape, bbox){
+ function zoomDistrict(lat, lng, upper, lower){
+
+  var bbox = upper.bbox;  //todo get bbox of both bboxes
+
   if(bbox.length == 2) {
     map.flyToBounds(bbox);
   } else {
@@ -434,18 +433,11 @@ function getDistrictInfo(lat, lng){
       marker.on('dragend', markerDrag);
       markers.addLayer(marker);
 
-  //todo add spiderweb of surrounding districts?
-      drawDistricts(shape);
+      drawDistricts(upper, lower);
 
       drawNewDistrict = false;
     }
   });
-
-
-
-  //TODO display both districts
-  //TODO marker needs drag end event - remap district and rezoom
-
  }
 
 // Bias the autocomplete object to the user's geographical location,
