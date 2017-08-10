@@ -159,6 +159,9 @@ function getAutocompletePlace(){
 
     if( districtData.upper || districtData.lower ){
       zoomDistrict(districtData);  //make this a callback
+    } else {
+
+      myDistricts.clearLayers();
     }
 
 
