@@ -96,7 +96,8 @@ District.prototype.surroundsPointApprox = function(lat, lon) {
 // https://wrf.ecse.rpi.edu//Research/Short_Notes/pnpoly.html
 // by W Randolph Franklin
 function pointInPolygon(points, lat, lon) {
-	var i = 0, j = points.length - 1;
+	var i = 0;
+	var j = points.length - 1;
 	var c = false;
 	for (; i < points.length; j = i++) {
 		if (((points[i][1] > lat) != (points[j][1] > lat)) &&
