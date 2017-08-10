@@ -72,6 +72,9 @@ function initMap(){
   map.on('click', function(e){
       var pos = e.latlng;
       setPosition( pos.lat, pos.lng );
+
+      document.getElementById('autocomplete').value = '';
+
   });
 
 
@@ -86,7 +89,7 @@ function resetMap(){
   myDistricts.clearLayers();
   map.flyToBounds(caBounds);
   document.getElementById('autocomplete').value = '';
-  resetDistrictInfo();
+
 }
 
 function resetDistrictInfo(){
@@ -175,13 +178,13 @@ function getDistrictInfo(lat, lng){
  }
 
   function setPosition(lat, lng){
-
+    resetDistrictInfo();
     markers.clearLayers();
     marker = L.marker([lat,lng],{ draggable: true });
     marker.on('dragend', function(e){
        var pos = e.target.latlng;
         getDistrictInfo(lat,lng);
-        zoomDistrict();  //make this a callback
+        zoomDistrict();  //make this a callback if get district info
     });
     markers.addLayer(marker);
         
