@@ -50,7 +50,7 @@ function init() {
 	initOpenStates();  //async
   initMap(fakeOnUpdatePoint);
 
-  setTimeout(function() {fakeOnUpdatePoint( 34.31092502160036, -118.29666137695312 );}, 3000);
+  //setTimeout(function() {fakeOnUpdatePoint( 34.31092502160036, -118.29666137695312 );}, 3000);
 }
 
 function initOpenStates() {
