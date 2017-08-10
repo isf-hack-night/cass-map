@@ -169,8 +169,20 @@ function getAutocompletePlace(){
  }
 
  function drawDistrict( district, districtColor ){
-
-      var shape = district.shape;
+      var shape = [];
+      // deep copy district.shape
+      for (var a in district.shape) {
+        shape[a] = [];
+        for (var b in district.shape[a]) {
+          shape[a][b] = [];
+          for (var c in district.shape[a][b]) {
+            shape[a][b][c] = [];
+            for (var d in district.shape[a][b][c]) {
+              shape[a][b][c][d] = district.shape[a][b][c][d];
+            }
+          }
+        }
+      }
 
       for (i = 0; i < shape.length; i++) { 
         var boundary = shape[i][0].slice(1).map(function(x) { return [x[1],x[0]]; });  //assumes no donuts

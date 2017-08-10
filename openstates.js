@@ -173,8 +173,9 @@ DistrictList.prototype.getUpperDistrict = function (i) {
 
 DistrictList.prototype.findNearbyDistricts = function (lat, lon) {
 	var nearby = [];
+	var district = null;
 	for (var d in this.districts) {
-		var district = this.districts[d];
+		district = this.districts[d];
 		if (district.surroundsPointApprox(lat, lon)) {
 			nearby.push(district);
 		}
