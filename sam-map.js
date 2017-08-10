@@ -50,7 +50,7 @@ function init() {
 	initOpenStates();  //async
   initMap(fakeOnUpdatePoint);
 
-  setTimeout(function() {fakeOnUpdatePoint( 34.31092502160036, -118.29666137695312 );}, 3000);
+  //setTimeout(function() {fakeOnUpdatePoint( 34.31092502160036, -118.29666137695312 );}, 3000);
 }
 
 function initOpenStates() {
@@ -148,8 +148,9 @@ function getAutocompletePlace(){
     
 
     marker.on('dragend', function(e){
-       var pos = e.target.latlng;
-        onUpdatePoint( pos.lat, pos.lng)
+       console.log( e.target);
+       var pos = e.target._latlng;
+       onUpdatePoint( pos.lat, pos.lng)
         
     });
 
@@ -158,6 +159,9 @@ function getAutocompletePlace(){
 
     if( districtData.upper || districtData.lower ){
       zoomDistrict(districtData);  //make this a callback
+    } else {
+
+      myDistricts.clearLayers();
     }
 
 
