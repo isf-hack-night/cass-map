@@ -181,6 +181,25 @@ DistrictList.prototype.findNearbyDistricts = function (lat, lon) {
 	return nearby;
 }
 
+DistrictList.prototype.findExactDistrictsInList = function (possibleDistricts, lat, lon) {
+	var district;
+	var upper = null;
+	var lower = null;
+	for (var d in possibleDistricts) {
+		district = possibleDistricts[d];
+		if (!lower && district.chamber == 'lower' && district.surroundsPointExact(lat, lon)) {
+			lower = district;
+		} else if (!upper && district.chamber == 'upper' && district.surroundsPointExact(lat, lon)) {
+			upper = district;
+		}
+	}
+	return {upper: upper, lower: lower};
+}
+
+DistrictList.protoype.findDistrictsForPoint = function(lat, lon) {
+	return this.findExactDistrictsInList(this.findNearbyDistricts(lat, lon), lat, lon);
+}
+
 DistrictList.prototype.preloadDistricts = function () {
 	if (!this.populated) {
 		this.populated = true;
