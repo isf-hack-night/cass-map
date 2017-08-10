@@ -148,8 +148,9 @@ function getAutocompletePlace(){
     
 
     marker.on('dragend', function(e){
-       var pos = e.target.latlng;
-        onUpdatePoint( pos.lat, pos.lng)
+       console.log( e.target);
+       var pos = e.target._latlng;
+       onUpdatePoint( pos.lat, pos.lng)
         
     });
 
