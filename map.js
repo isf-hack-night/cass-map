@@ -166,6 +166,44 @@ District.prototype.getBoundary = function() {
 	return this.boundary;
 }
 
+District.prototype.surroundsPointApprox = function(lat, lon) {
+	var boundary = this.getBoundary();
+	if (boundary == null) return false;
+	var bbox = boundary.bbox;
+	return lat >= bbox[0][0] && lon >= bbox[0][1] && lat <= bbox[1][0] && lon <= bbox[1][1];
+}
+
+// Ray-casting algorithm ported from C from 
+// https://wrf.ecse.rpi.edu//Research/Short_Notes/pnpoly.html
+// by W Randolph Franklin
+function pointInPolygon(points, lat, lon) {
+	var i = 0, j = points.length - 1;
+	var c = false;
+	for (; i < points.length; j = i++) {
+		if (((points[i][1] > lat) != (points[j][1] > lat)) &&
+        (lon < (points[j][0] - points[i][0]) * (lat - points[i][1]) / (points[j][1] - points[i][1]) + points[i][0]) ) {
+			c = !c;
+		}
+	}
+	return c;
+}
+
+District.prototype.surroundsPointExact = function(lat, lon) {
+	var boundary = this.getBoundary();
+	if (boundary == null) return false;
+	var donut = [];
+	for (var shape in boundary.shape) {
+		donut = boundary.shape[shape];
+		if (pointInPolygon(donut[0], lat, lon)) {
+			if (donut.length == 2) {
+				return !pointInPolygon(donut[1], lat, lon);
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
 function DistrictList(json, state) {
 	var district;
 	this.upper_districts = [];
@@ -194,7 +232,7 @@ function DistrictPopulator (districtList) {
 	this.currentDistrict = 0;
 }
 
-DistrictPopulator.prototype.populate = function() {
+DistrictPopulator.prototype.populate = function () {
 	if (this.currentDistrict < this.districtList.num_districts) {
 		var district_id = this.districtList.district_ids[this.currentDistrict];
 		this.districtList.districts[district_id].getBoundary();
@@ -213,10 +251,14 @@ DistrictList.prototype.getUpperDistrict = function (i) {
 	return this.upper_districts[i - 1];
 }
 
-DistrictList.prototype.findNearbyDistricts = function () {
+DistrictList.prototype.findNearbyDistricts = function (lat, lon) {
 	var nearby = [];
-	nearby.push(this.lower_districts[0]);
-	nearby.push(this.upper_districts[0]);
+	for (var d in this.districts) {
+		var district = this.districts[d];
+		if (district.surroundsPointApprox(lat, lon)) {
+			nearby.push(district);
+		}
+	}
 	return nearby;
 }
 
@@ -260,13 +302,15 @@ OpenStates.prototype.getDistrictBoundary = function (boundary_id) {
 	return this.callApi(this.makeUrl(method));
 }
 
-function updateUpperLower(possibleDistricts) {
+function updateUpperLower(possibleDistricts, lat, lon) {
 	var district;
+	var foundUpper = false;
+	var foundLower = false;
 	for (var d in possibleDistricts) {
 		district = possibleDistricts[d];
-		if (district.chamber == 'lower') {
+		if (!foundLower && district.chamber == 'lower' && district.surroundsPointExact(lat, lon)) {
 			districtLower = district;
-		} else if (district.chamber == 'upper') {
+		} else if (!foundUpper && district.chamber == 'upper' && district.surroundsPointExact(lat, lon)) {
 			districtUpper = district;
 		}
 	}
@@ -313,7 +357,7 @@ function getDistrictInfo(lat, lng){
 	console.log(possibleDistricts);
 	// TODO - actually find correct district instead of just picking
 	// closest center within bounding box.
-	updateUpperLower(possibleDistricts);
+	updateUpperLower(possibleDistricts, lat, lng);
 	console.log('Lower district:' + districtLower.id);
 	console.log(districtLower);
 	console.log('Upper district:' + districtUpper.id);
@@ -335,7 +379,7 @@ function getDistrictInfo(lat, lng){
  }
 
 //TODO deal with upper and lower 
- function zoomDistrict(lat,lng,shape, bbox ){
+ function zoomDistrict(lat, lng, shape, bbox){
   if(bbox.length == 2) {
     map.flyToBounds(bbox);
   } else {
