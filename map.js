@@ -6,10 +6,10 @@ var autocomplete, districtUpper, districtLower, zip;
 var openStates;
 var stateDistricts;
 var state = 'CA';     //TODO get latlong map zoom defaults
-var curOverlay = 'sldl';
 var openStatesApiKey = 'INSERT API KEY HERE';
 var currentChamber = 'lower';
-var currentDistrict;
+var currentDistrictLower;
+var currentDistrictUpper;
 
 var testlat = 37.819027000000006;
 var testlng = -122.372781;
@@ -342,7 +342,7 @@ function getAutocompletePlace(){
         }
       }
     }
-    getDistrictInfo(lat, lng);
+    districtUpper, districtLower = getDistrictInfo(lat, lng);  //todo make this return
 
 
 }
@@ -363,19 +363,55 @@ function getDistrictInfo(lat, lng){
 	console.log('Upper district:' + districtUpper.id);
 	console.log(districtUpper);
 	console.log('current district:' + districtUpper.id);
-	// zoomDistrict(place, currentDistrict);
   //TODO - call openStates
   //TODO - set cookies or local storage
   //TODO update mailchimp hidden fields
 
-  var shape = [];
-  var bbox = [];
+  var shape = currentDistrict.shape;
+  var bbox = currentDistrict.bbox ;
 
 	zoomDistrict(lat, lng, shape, bbox);
 
   //TODO update to use bounding box for district
-  //zoomDistrict(place);
+
+  //todo return new district
+
+  return districtUpper, districtLower;
 	
+ }
+
+ function markerDrag(e){
+  console.log('Marker Drag End');
+ 
+
+  var changedPos = e.target.getLatLng();
+  console.log(changedPos);
+
+  var newUpper, newLower = getDistrictInfo(changedPos.lat, changedPos.lng);  
+
+  if( newUpper != districtUpper || newLower != districtLower ) {
+    districtUpper = newUpper;
+    districtLower = newLower;
+
+    //TODO get new shapes
+
+  }
+
+  //todo get new lat long
+  //recalc district
+  //re display district -  watch our for circular zoom district - avoid resetting market
+
+
+ }
+
+ function drawDistricts( shape ){
+      myDistricts.clearLayers();
+      var boundaryLower = shape[0][0].slice(1).map(function(x) { return [x[1],x[0]]; });
+
+  //TODO random color
+  //TODO draw bow
+      var polygonLower = L.polygon(boundaryLower, {color: 'red'});
+      myDistricts.addLayer( polygonLower );
  }
 
 //TODO deal with upper and lower 
@@ -387,18 +423,20 @@ function getDistrictInfo(lat, lng){
   }
 
   var drawNewDistrict = true;
-  //TODO detect if change
+  //TODO detect if district change
+
+
   map.on('zoomend', function() {
     if( drawNewDistrict ){
+
+      markers.clearLayers();
       marker = L.marker([lat,lng],{ draggable: true });
+      marker.on('dragend', markerDrag);
       markers.addLayer(marker);
 
   //todo add spiderweb of surrounding districts?
-      var boundaryLower = shape[0][0].slice(1).map(function(x) { return [x[1],x[0]]; });
+      drawDistricts(shape);
 
-  //TODO random color
-      var polygonLower = L.polygon(boundaryLower, {color: 'red'});
-      myDistricts.addLayer( polygonLower );
       drawNewDistrict = false;
     }
   });
