@@ -6,10 +6,10 @@ var autocomplete, districtUpper, districtLower, zip;
 var openStates;
 var stateDistricts;
 var state = 'CA';     //TODO get latlong map zoom defaults
-var curOverlay = 'sldl';
 var openStatesApiKey = 'INSERT API KEY HERE';
 var currentChamber = 'lower';
-var currentDistrict;
+var currentDistrictLower;
+var currentDistrictUpper;
 
 var testlat = 37.819027000000006;
 var testlng = -122.372781;
@@ -145,7 +145,7 @@ function getAutocompletePlace(){
         }
       }
     }
-    getDistrictInfo(lat, lng);
+    districtUpper, districtLower = getDistrictInfo(lat, lng);  //todo make this return
 
 
 }
@@ -166,23 +166,58 @@ function getDistrictInfo(lat, lng){
 	console.log('Upper district:' + districtUpper.id);
 	console.log(districtUpper);
 	console.log('current district:' + districtUpper.id);
-	// zoomDistrict(place, currentDistrict);
   //TODO - call openStates
   //TODO - set cookies or local storage
   //TODO update mailchimp hidden fields
 
-  var shape = [];
-  var bbox = [];
+	zoomDistrict(lat, lng, districtUpper, districtLower);
 
-	zoomDistrict(lat, lng, shape, bbox);
-
-  //TODO update to use bounding box for district
-  //zoomDistrict(place);
+  return districtUpper, districtLower;
 	
  }
 
+ function markerDrag(e){
+  console.log('Marker Drag End');
+ 
+
+  var changedPos = e.target.getLatLng();
+  console.log(changedPos);
+
+  var newUpper, newLower = getDistrictInfo(changedPos.lat, changedPos.lng);  
+
+  if( newUpper != districtUpper || newLower != districtLower ) {
+    districtUpper = newUpper;
+    districtLower = newLower;
+
+  }
+
+ }
+
+ function drawDistricts( upper, lower ){
+
+      var shapeUpper = upper.shape;
+      var shapeLower = lower.shape;
+
+      myDistricts.clearLayers();
+      var boundaryLower = shapeLower[0][0].slice(1).map(function(x) { return [x[1],x[0]]; });
+      var boundaryUpper = shapeUpper[0][0].slice(1).map(function(x) { return [x[1],x[0]]; });
+
+      //TODO better color
+      //todo ordering of districts, add hide/show or select
+
+      var polygonLower = L.polygon(boundaryLower, {color: 'red'});
+      myDistricts.addLayer( polygonLower );
+
+      var polygonUpper = L.polygon(boundaryUpper, {color: 'blue'});
+      myDistricts.addLayer( polygonUpper );
+
+ }
+
 //TODO deal with upper and lower 
- function zoomDistrict(lat, lng, shape, bbox){
+ function zoomDistrict(lat, lng, upper, lower){
+
+  var bbox = upper.bbox;  //todo get bbox of both bboxes
+
   if(bbox.length == 2) {
     map.flyToBounds(bbox);
   } else {
@@ -190,27 +225,22 @@ function getDistrictInfo(lat, lng){
   }
 
   var drawNewDistrict = true;
-  //TODO detect if change
+  //TODO detect if district change
+
+
   map.on('zoomend', function() {
     if( drawNewDistrict ){
+
+      markers.clearLayers();
       marker = L.marker([lat,lng],{ draggable: true });
+      marker.on('dragend', markerDrag);
       markers.addLayer(marker);
 
-  //todo add spiderweb of surrounding districts?
-      var boundaryLower = shape[0][0].slice(1).map(function(x) { return [x[1],x[0]]; });
+      drawDistricts(upper, lower);
 
-  //TODO random color
-      var polygonLower = L.polygon(boundaryLower, {color: 'red'});
-      myDistricts.addLayer( polygonLower );
       drawNewDistrict = false;
     }
   });
-
-
-
-  //TODO display both districts
-  //TODO marker needs drag end event - remap district and rezoom
-
  }
 
 // Bias the autocomplete object to the user's geographical location,
