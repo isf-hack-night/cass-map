@@ -200,6 +200,7 @@ DistrictList.prototype.findExactDistrictsInList = function (possibleDistricts, l
 
 DistrictList.prototype.findDistrictsForPoint = function(lat, lon) {
 	var nearby = this.findNearbyDistricts(lat, lon);
+	console.log(nearby);
 	return this.findExactDistrictsInList(nearby, lat, lon);
 }
 
